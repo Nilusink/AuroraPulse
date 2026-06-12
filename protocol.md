@@ -22,6 +22,9 @@ stateDiagram-v2
     Registered --> Idle: Invalid secret
     Registered --> Error: timeout
     Registered --> KeepAlive: OK
+    Registered --> Wait: already registered
+
+    Wait --> Registered: retry
 
     KeepAlive --> KeepAlive: every 5s
     KeepAlive --> Error: timeout
@@ -104,7 +107,7 @@ Content-Type: `application/json`
 ```json
 {
     "sig": "<hmac>",
-    "ts": 10293480
+    "ts": 10293480  // timestamp
 }
 ```
 
@@ -191,7 +194,8 @@ Content-Type: `application/json`
 
 ```json
 {
-    "token": "<128 bit token>"
+    "token": "<128 bit token>",
+    "ts": 1234125  // timestamp
 }
 ```
 
