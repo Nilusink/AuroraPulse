@@ -39,6 +39,7 @@ namespace Aurora
             WiFiClient wifiClient;
 
             IPAddress manager_address;
+            uint16_t manager_port;
             IPAddress local_ip;
             uint16_t port = 80;
             IPAddress gateway;
@@ -70,8 +71,8 @@ namespace Aurora
             static void update_wrapper(void *pv);
 
         public:
-            Connection(IPAddress manager_address, IPAddress gateway, IPAddress subnet, IPAddress dns);
-            Connection(IPAddress manager_address, IPAddress gateway, IPAddress subnet);
+            Connection(IPAddress manager_address, uint16_t manager_port, IPAddress gateway, IPAddress subnet, IPAddress dns);
+            Connection(IPAddress manager_address, uint16_t manager_port, IPAddress gateway, IPAddress subnet);
 
             /**
              * @brief initialize connection and get assigned IP

@@ -17,15 +17,17 @@
 using namespace Aurora;
 
 // constructors
-Connection::Connection(IPAddress manager_address, IPAddress gateway, IPAddress subnet, IPAddress dns)
-  : manager_address(manager_address), gateway(gateway), subnet(subnet), dns(dns)
+Connection::Connection(IPAddress manager_address, uint16_t manager_port, IPAddress gateway, IPAddress subnet, IPAddress dns)
+  : manager_address(manager_address), manager_port(manager_port), gateway(gateway), subnet(subnet), dns(dns)
 {
     client.setReuse(true);
 }
 
-Connection::Connection(IPAddress manager_address, IPAddress gateway, IPAddress subnet)
-  : manager_address(manager_address), gateway(gateway), subnet(subnet), dns(1, 1, 1, 1)
-{}
+Connection::Connection(IPAddress manager_address, uint16_t manager_port, IPAddress gateway, IPAddress subnet)
+  : manager_address(manager_address), manager_port(manager_port), gateway(gateway), subnet(subnet), dns(1, 1, 1, 1)
+{
+    client.setReuse(true);
+}
 
 
 // private methods
@@ -50,8 +52,9 @@ void Connection::send_keepalive()
     snprintf(
         url_buff,
         AC_REQUREST_BUFF_SIZE-1,
-        "http://%s/device/%d/keepalive?secret=%ld",
+        "http://%s:%d/device/%d/keepalive?secret=%ld",
         manager_address.toString(),
+        manager_port,
         DEVICE_ID,
         device_secret
     );
@@ -142,8 +145,9 @@ bool Connection::initialize(const char* ssid, const char* password)
     snprintf(
         url_buff, 
         AC_REQUREST_BUFF_SIZE-1,
-        "http://%s/device/%d/address",
+        "http://%s:%d/device/%d/address",
         manager_address.toString(),
+        manager_port,
         DEVICE_ID
     );
     if (client.begin(wifiClient, url_buff))
@@ -259,8 +263,9 @@ bool Connection::register_device()
     snprintf(
         url_buff,
         AC_REQUREST_BUFF_SIZE-1,
-        "http://%s/device/%d/register",
+        "http://%s:%d/device/%d/register",
         manager_address.toString(),
+        manager_port,
         DEVICE_ID
     );
 
