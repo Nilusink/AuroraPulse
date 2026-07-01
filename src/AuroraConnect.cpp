@@ -52,8 +52,8 @@ void Connection::send_keepalive()
     snprintf(
         url_buff,
         AC_REQUREST_BUFF_SIZE-1,
-        "http://%s:%d/device/%d/keepalive?secret=%ld",
-        manager_address.toString(),
+        "http://%s:%d/device/%d/keepalive?secret=%s",
+        manager_address.toString().c_str(),
         manager_port,
         DEVICE_ID,
         device_secret
@@ -64,7 +64,7 @@ void Connection::send_keepalive()
         snprintf(
             url_buff,
             AC_REQUREST_BUFF_SIZE-1,
-            "{\"token\":%s,\"ts\":\"%d\"}",
+            "{\"token\":%s,\"ts\":\"%lld\"}",
             session_token,
             now
         );
@@ -111,10 +111,12 @@ void Connection::update_wrapper(void *pv)
         uint32_t now = millis();
         conn->update(now);
 
+        #ifdef ESP32
         Serial.printf(
             "Remaining a stack: %u\n",
             uxTaskGetStackHighWaterMark(NULL)
         );
+        #endif
     }
 }
 
@@ -146,7 +148,7 @@ bool Connection::initialize(const char* ssid, const char* password)
         url_buff, 
         AC_REQUREST_BUFF_SIZE-1,
         "http://%s:%d/device/%d/address",
-        manager_address.toString(),
+        manager_address.toString().c_str(),
         manager_port,
         DEVICE_ID
     );
@@ -246,7 +248,7 @@ bool Connection::register_device()
     time(&now);
 
     // generate signature (hijack url_buff for data)
-    snprintf(url_buff, AC_REQUREST_BUFF_SIZE-1, "%d|%d", DEVICE_ID, now);
+    snprintf(url_buff, AC_REQUREST_BUFF_SIZE-1, "%d|%lld", DEVICE_ID, now);
 
     secrets::hmac_sha256(
         (const uint8_t*)device_secret,
@@ -264,7 +266,7 @@ bool Connection::register_device()
         url_buff,
         AC_REQUREST_BUFF_SIZE-1,
         "http://%s:%d/device/%d/register",
-        manager_address.toString(),
+        manager_address.toString().c_str(),
         manager_port,
         DEVICE_ID
     );
@@ -275,7 +277,7 @@ bool Connection::register_device()
         snprintf(
             url_buff,
             AC_REQUREST_BUFF_SIZE-1,
-            "{\"ts\":%d,\"sig\":\"%s\"}",
+            "{\"ts\":%lld,\"sig\":\"%s\"}",
             now,
             signature
         );
@@ -337,7 +339,7 @@ bool Connection::register_device()
     }
 
     // process response
-    snprintf(session_token, SESSION_TOKEN_LENGTH, "%d", doc["session_token"]);
+    snprintf(session_token, SESSION_TOKEN_LENGTH, "%d", (int)doc["session_token"]);
     token_expiry = doc["expires"];
 
     // change state
@@ -348,6 +350,7 @@ bool Connection::register_device()
 
 void Connection::start_task()
 {
+    #ifdef ESP32
     xTaskCreate(
         update_wrapper,
         "connection task",
@@ -356,6 +359,7 @@ void Connection::start_task()
         1,
         NULL
     );
+    #endif
 }
 
 
